@@ -1,5 +1,5 @@
 ---
-title: "HW_2_Rmarkdwon"
+title: "Homework 2: Linear regression"
 output: html_document
 date: "2022-10-12"
 ---
@@ -8,22 +8,186 @@ date: "2022-10-12"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+## PSTAT 231
+## Matias Strehl
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+Let's start loading the libraries we will use.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-```{r cars}
-summary(cars)
+```{r libraries, echo = T, message = F, warning = F}
+rm(list=ls())
+# Load libraries
+# install.packages("yardstick")
+library(yardstick)
+library(tidyverse)
+library(tidymodels)
+library(ggplot2)
+library(magrittr)
 ```
 
-## Including Plots
+## Read the data set
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r read_data, echo = T, message = F, warning = F}
+# Read data set
+abalone <- read_csv("abalone.csv")
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+## Question 1
+
+In the next graph we observe a histogram with the distribution of age, with a vertical straight line right at the mean. We observe that most observations accumulate around 10, and that the distribution is right-skewed. From our calculations we observe that the average age is 11.43, while the standard deviation is 3.22.
+```{r question_1, echo = T, message = F, warning = F}
+# Creating age variable
+abalone <- abalone %>%
+  mutate(age = rings + 1.5)
+
+# We drop rings variable since we won't use it
+abalone <- abalone %>%
+  select(-rings)
+
+ggplot(data = abalone, aes(x = age)) +
+  geom_histogram(color = "cadetblue", fill = "white")+
+  labs(
+    title="Distribution of age",
+    x = "Age",
+    y = "Frequency") +
+  geom_vline(aes(xintercept = mean(age)),
+                 size = 0.8)  +
+  theme_classic()
+  
+abalone %>%
+  summarize(mean = mean(age), sd = sd(age))
+```
+
+## Question 2
+
+```{r question_2, echo = T, message = F, warning = F}
+# Split the data
+set.seed(1701)
+
+abalone_split <- initial_split(abalone, prop = 0.80, strata = age)
+abalone_train <- training(abalone_split)
+abalone_test <- testing(abalone_split)
+```
+
+## Question 3
+
+```{r question_3, echo = T, message = F, warning = F}
+# Create recipe
+abalone_recipe <- recipe(age ~ . , data = abalone_train ) %>%
+  step_dummy(all_nominal_predictors()) %>%
+  step_interact(terms = ~ type_M:shucked_weight) %>%
+  step_interact(terms = ~ longest_shell:diameter) %>%
+  step_interact(terms = ~ shucked_weight:shell_weight)  %>%
+  step_center(all_predictors()) %>%
+  step_scale(all_predictors())
+```
+
+We don't include the variable *rings* as a predictor because is perfectly correlated with our outcome *age*. Besides, the whole idea of this exercise is to predict the age of the abalone without using data about the number of rings, so there is no need to kill the abalone to learn about its age.
+
+## Question 4
+
+```{r question_4, echo = T, message = F, warning = F}
+# Set a linear regression engine
+lm_model <- linear_reg() %>% 
+  set_engine("lm")
+
+```
+
+## Question 5
+
+```{r question_5, echo = T, message = F, warning = F}
+# Set up an empty workflow, add model, add recipe
+lm_wflow <- workflow() %>%
+  add_model(lm_model) %>%
+  add_recipe(abalone_recipe)
+
+```
+
+## Question 6
+
+In the table below we can see the results of our linear regression in the training set.
+```{r question_6, echo = T, message = F, warning = F}
+# Fit the linear model to the training set
+lm_fit <- fit(lm_wflow, abalone_train)
+
+lm_fit %>% 
+  # This returns the parsnip object:
+  extract_fit_parsnip() %>% 
+  # Now tidy the linear model object:
+  tidy()
+```
+Now, we can predict the requested value.
+```{r question_6_b, echo = T, message = F, warning = F}
+abalone_train_res_1 <- predict(lm_fit, new_data = data.frame(
+  type = "I" , longest_shell = 0.5, diameter = 0.1, 
+  height = 0.3, whole_weight = 4, shucked_weight = 1,
+  viscera_weight = 2, shell_weight = 1))
+
+abalone_train_res_1
+```
+
+As we can see, the predicted age for an abalone with the requested features is 22.59.
+
+## Question 7
+
+```{r question_7, echo = T, message = F, warning = F}
+# Assessing our model
+# Create a metric set 
+abalone_metrics <- metric_set(rmse,rsq,mae)
+
+# Predict values with our model
+abalone_train_res_2 <- predict(lm_fit, new_data = abalone_train %>% 
+                               select(-age))
+
+# Add the actual age column
+abalone_train_res_2 <- bind_cols(abalone_train_res_2, abalone_train %>%
+                                   select(age))
+
+# Apply our metric set
+abalone_metrics(abalone_train_res_2, truth = age, 
+                estimate = .pred)
+```
+From the table above we can see that $R^{2} = 0.56$, $RMSE = 2.15$ and $MAE = 1.56$.
+
+We can also plot our estimated values against the true values of age to assess our model.
+
+```{r question_7_b, echo = T, message = F, warning = F}
+# Plot 
+abalone_train_res_2 %>%
+  ggplot(aes(x = .pred, y = age)) +
+  labs(title = "Age Vs Predicted Age",
+       x = "Predicted Age",
+       y = "Age") +
+  geom_point(alpha = 0.2, col = "cadetblue") +
+  geom_abline(lty = 3) +
+  theme_bw() +
+  coord_obs_pred()
+
+```
+
+
+From the graph we observe that our model does a pretty good job approximately for age values below 15, but the model tends to underestimate the true value of age for age values above 15.
+
+## Question 8
+The $Var(\hat{f}(x_{0})) + [Bias(\hat{f}(x_{0}))]^{2}$ term on the right hand size of the equation represents the reproducible error, while the $Var(\epsilon)$ term represents the irreducible error.
+
+## Question 9
+
+From the lecture, we know that the best that we can have is $\hat{f}(x_{0}) = E[Y|X=x_{0}]$, that is, our estimation for the conditional mean of $Y$ given $X=X_0$ is exactly equal to the conditional expectation. In that case, we have that $E[(\hat{f}(x_{0}) - E(\hat{f}(x_0)))^{2}] = [E[\hat{f}(x_0)] - f(x_0)]^{2} = 0$, but we will always have the $Var(\epsilon)$ term in the expected test error. Then, we have that $E[(y_0 - \hat{f}(x_0))^{2}] \geq Var(\epsilon)$, that is, the expected test error is always greater or equal than the irreducible error.
+
+## Question 10
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
