@@ -168,25 +168,59 @@ abalone_train_res_2 %>%
 
 From the graph we observe that our model does a pretty good job approximately for age values below 15, but the model tends to underestimate the true value of age for age values above 15.
 
+# Only 231 students
+
+In lecture, we presented the general bias-variance tradeoff, which takes the form:
+
+$[(y_0 - \hat{f}(x_0))^2] = Var(\hat{f}(x_0)) + [Bias(\hat{f}(x_0)) ]^2 + Var(\epsilon)$
+
+
+
 ## Question 8
+**Which term(s) in the bias-variance tradeoff above represent the reproducible error? Which term(s) represent the irreducible error?**
+
 The $Var(\hat{f}(x_{0})) + [Bias(\hat{f}(x_{0}))]^{2}$ term on the right hand size of the equation represents the reproducible error, while the $Var(\epsilon)$ term represents the irreducible error.
 
 ## Question 9
 
-From the lecture, we know that the best that we can have is $\hat{f}(x_{0}) = E[Y|X=x_{0}]$, that is, our estimation for the conditional mean of $Y$ given $X=X_0$ is exactly equal to the conditional expectation. In that case, we have that $E[(\hat{f}(x_{0}) - E(\hat{f}(x_0)))^{2}] = [E[\hat{f}(x_0)] - f(x_0)]^{2} = 0$, but we will always have the $Var(\epsilon)$ term in the expected test error. Then, we have that $E[(y_0 - \hat{f}(x_0))^{2}] \geq Var(\epsilon)$, that is, the expected test error is always greater or equal than the irreducible error.
+**Using the bias-variance tradeoff above, demonstrate that the expected test error is always at least as large as the irreducible error. **
+
+From the lecture, we know that the best that we can have is $\hat{f}(x_{0}) = E[Y|X=x_{0}]$, that is, our estimation for the conditional mean of $Y$ given $X=X_0$ is exactly equal to the conditional expectation. In that case, we have that $E[(\hat{f}(x_{0}) - E(\hat{f}(x_0)))^{2}] = [E[\hat{f}(x_0)] - f(x_0)]^{2} = 0$, that is, the two first terms of the right hand size (RHS) of the equation are equal to zero. However, we will always have the $Var(\epsilon)$ term in the expected test error, which is positive. Therefore, we have that $E[(y_0 - \hat{f}(x_0))^{2}] \geq Var(\epsilon)$, that is, the expected test error is always greater or equal than the irreducible error. A different way of seeing it is that the first two terms of the RHS of the equation are always greater or equal than zero, so the expected test error is always greater or equal than $Var(\epsilon)$
 
 ## Question 10
 
+**Prove the bias-variance trade-off. **
+
+We start plugging in $y$.
+
+$$E[(y-\hat{f}(x))^2] = E[(f(x) + \epsilon -\hat{f}(x))^2]$$
+Expanding the square:
+
+$$E[(y-\hat{f}(x))^2]  = E[(f(x) -\hat{f}(x))^2] + 2E[\epsilon(f(x) - \hat{f}(x))] + E[\epsilon^2]$$
+Note that the term in the middle is equal to zero since $\epsilon$ is random noise. Since $E[\epsilon] = 0$ we have that that $E[\epsilon^2] = Var(\epsilon)$. Then, 
+
+$$E[(y-\hat{f}(x))^2] = E[(f(x) -\hat{f}(x))^2] + Var(\epsilon)$$
+To finish the proof, we need to prove that the first term on the RHS of the equation is equal to $Var(\hat{f}(x_0)) + [Bias(\hat{f}(x_0))]^2$.
 
 
+By adding and substracting, 
 
+$$ E[(f(x) -\hat{f}(x))^2] = E[(f(x) - E(\hat{f}(x)) + E(\hat{f}(x)) -\hat{f}(x))^2] $$
 
+Comnbining terms, 
 
+$$ E[(f(x)-\hat{f}(x))^2] = E[( [f(x) - E(\hat{f}(x))] - [ \hat{f}(x) - E(\hat{f}(x))])^2] $$
+Expanding the squares and using linearity of expectations
 
+$$ E[(f-\hat{f}(x))^2] = E[(f(x) - E(\hat{f}(x)))^2] + E[(\hat{f}(x) -E(\hat{f}(x)))^2] +2E[ (f(x) - E(\hat{f}(x))) (\hat{f}(x) - E(\hat{f}(x)))] $$
 
+Because the third term is zero, we have: 
 
+$$ E[(f(x)-\hat{f}(x))^2] = E(Bias(\hat{f}(x))^2) + Var(\hat{f}(x))$$
+Which is equivalent to: 
+$$ E[(f(x)-\hat{f}(x))^2] = Bias(\hat{f}(x))^2 + Var(\hat{f}(x))$$
 
-
+so the proof is completed.
 
 
 

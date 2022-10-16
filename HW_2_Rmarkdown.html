@@ -534,8 +534,17 @@ abalone_train_res_2 %&gt;%
 approximately for age values below 15, but the model tends to
 underestimate the true value of age for age values above 15.</p>
 </div>
+<div id="only-231-students" class="section level1">
+<h1>Only 231 students</h1>
+<p>In lecture, we presented the general bias-variance tradeoff, which
+takes the form:</p>
+<p><span class="math inline">\([(y_0 - \hat{f}(x_0))^2] =
+Var(\hat{f}(x_0)) + [Bias(\hat{f}(x_0)) ]^2 + Var(\epsilon)\)</span></p>
 <div id="question-8" class="section level2">
 <h2>Question 8</h2>
+<p><strong>Which term(s) in the bias-variance tradeoff above represent
+the reproducible error? Which term(s) represent the irreducible
+error?</strong></p>
 <p>The <span class="math inline">\(Var(\hat{f}(x_{0})) +
 [Bias(\hat{f}(x_{0}))]^{2}\)</span> term on the right hand size of the
 equation represents the reproducible error, while the <span class="math inline">\(Var(\epsilon)\)</span> term represents the
@@ -543,17 +552,56 @@ irreducible error.</p>
 </div>
 <div id="question-9" class="section level2">
 <h2>Question 9</h2>
+<p><strong>Using the bias-variance tradeoff above, demonstrate that the
+expected test error is always at least as large as the irreducible
+error. </strong></p>
 <p>From the lecture, we know that the best that we can have is <span class="math inline">\(\hat{f}(x_{0}) = E[Y|X=x_{0}]\)</span>, that is,
 our estimation for the conditional mean of <span class="math inline">\(Y\)</span> given <span class="math inline">\(X=X_0\)</span> is exactly equal to the conditional
 expectation. In that case, we have that <span class="math inline">\(E[(\hat{f}(x_{0}) - E(\hat{f}(x_0)))^{2}] =
-[E[\hat{f}(x_0)] - f(x_0)]^{2} = 0\)</span>, but we will always have the
-<span class="math inline">\(Var(\epsilon)\)</span> term in the expected
-test error. Then, we have that <span class="math inline">\(E[(y_0 -
-\hat{f}(x_0))^{2}] \geq Var(\epsilon)\)</span>, that is, the expected
-test error is always greater or equal than the irreducible error.</p>
+[E[\hat{f}(x_0)] - f(x_0)]^{2} = 0\)</span>, that is, the two first
+terms of the right hand size (RHS) of the equation are equal to zero.
+However, we will always have the <span class="math inline">\(Var(\epsilon)\)</span> term in the expected test
+error, which is positive. Therefore, we have that <span class="math inline">\(E[(y_0 - \hat{f}(x_0))^{2}] \geq
+Var(\epsilon)\)</span>, that is, the expected test error is always
+greater or equal than the irreducible error. A different way of seeing
+it is that the first two terms of the RHS of the equation are always
+greater or equal than zero, so the expected test error is always greater
+or equal than <span class="math inline">\(Var(\epsilon)\)</span></p>
 </div>
 <div id="question-10" class="section level2">
 <h2>Question 10</h2>
+<p><strong>Prove the bias-variance trade-off. </strong></p>
+<p>We start plugging in <span class="math inline">\(y\)</span>.</p>
+<p><span class="math display">\[E[(y-\hat{f}(x))^2] = E[(f(x) + \epsilon
+-\hat{f}(x))^2]\]</span> Expanding the square:</p>
+<p><span class="math display">\[E[(y-\hat{f}(x))^2]  = E[(f(x)
+-\hat{f}(x))^2] + 2E[\epsilon(f(x) - \hat{f}(x))] +
+E[\epsilon^2]\]</span> Note that the term in the middle is equal to zero
+since <span class="math inline">\(\epsilon\)</span> is random noise.
+Since <span class="math inline">\(E[\epsilon] = 0\)</span> we have that
+that <span class="math inline">\(E[\epsilon^2] = Var(\epsilon)\)</span>.
+Then,</p>
+<p><span class="math display">\[E[(y-\hat{f}(x))^2] = E[(f(x)
+-\hat{f}(x))^2] + Var(\epsilon)\]</span> To finish the proof, we need to
+prove that the first term on the RHS of the equation is equal to <span class="math inline">\(Var(\hat{f}(x_0)) +
+[Bias(\hat{f}(x_0))]^2\)</span>.</p>
+<p>By adding and substracting,</p>
+<p><span class="math display">\[ E[(f(x) -\hat{f}(x))^2] = E[(f(x) -
+E(\hat{f}(x)) + E(\hat{f}(x)) -\hat{f}(x))^2] \]</span></p>
+<p>Comnbining terms,</p>
+<p><span class="math display">\[ E[(f(x)-\hat{f}(x))^2] = E[( [f(x) -
+E(\hat{f}(x))] - [ \hat{f}(x) - E(\hat{f}(x))])^2] \]</span> Expanding
+the squares and using linearity of expectations</p>
+<p><span class="math display">\[ E[(f-\hat{f}(x))^2] = E[(f(x) -
+E(\hat{f}(x)))^2] + E[(\hat{f}(x) -E(\hat{f}(x)))^2] +2E[ (f(x) -
+E(\hat{f}(x))) (\hat{f}(x) - E(\hat{f}(x)))] \]</span></p>
+<p>Because the third term is zero, we have:</p>
+<p><span class="math display">\[ E[(f(x)-\hat{f}(x))^2] =
+E(Bias(\hat{f}(x))^2) + Var(\hat{f}(x))\]</span> Which is equivalent to:
+<span class="math display">\[ E[(f(x)-\hat{f}(x))^2] =
+Bias(\hat{f}(x))^2 + Var(\hat{f}(x))\]</span></p>
+<p>so the proof is completed.</p>
+</div>
 </div>
 
 
